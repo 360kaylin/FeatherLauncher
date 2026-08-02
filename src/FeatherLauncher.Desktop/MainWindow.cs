@@ -88,6 +88,8 @@ public sealed class MainWindow : Window
     {
         var size = await cache.GetSizeBytesAsync(); var process = Process.GetCurrentProcess();
         var rows = new StackPanel { Spacing = 10 }; void Row(string label, string value) => rows.Children.Add(new SelectableTextBlock { Text = $"{label}:  {value}", TextWrapping = TextWrapping.Wrap });
+        var authenticationConfiguration = auth.Get();
+        Row("Authentication configured", authenticationConfiguration.IsConfigured ? "yes" : "no"); Row("Selected authentication flow", authenticationConfiguration.UseDeviceCode ? "Device code" : "System browser"); Row("Current high-level authentication state", "See Account page"); Row("Token expiry time", "Available only for the active ready session on Account page"); Row("Secure storage available", OperatingSystem.IsWindows() ? "yes (Windows DPAPI)" : "no"); Row("Last safe authentication error category", "None recorded this run"); Row("Live authentication manually verified", "no — local operator record only");
         Row("Launcher version", typeof(App).Assembly.GetName().Version?.ToString() ?? "Unavailable"); Row("Operating system", RuntimeInformation.OSDescription); Row("Process architecture", RuntimeInformation.ProcessArchitecture.ToString()); Row("Current launcher memory usage", FormatBytes(process.WorkingSet64)); Row("Application-data path", paths.Data); Row("Logs path", paths.Logs); Row("Cache path", paths.Cache); Row("Total cache size", FormatBytes(size));
         content.Children.Clear(); content.Children.Add(PageShell("Diagnostics", rows));
     }

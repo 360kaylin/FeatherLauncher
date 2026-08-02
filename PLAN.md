@@ -41,3 +41,6 @@ Every phase requires analyzers with warnings as errors, unit and integration tes
 ## Phase 2B — live authentication pipeline
 
 Implemented an opt-in MSAL device-code public-client flow and focused Xbox Live, XSTS, Minecraft login, Java entitlement, and profile services. Authentication remains disabled without configuration; no game download or launch work is included. Automated coverage uses fakes/mocked HTTP only. Live compatibility remains owner-performed and must be recorded honestly before release. Phase 3 should add verified version-library downloads, integrity checks, Java runtime discovery/management, isolated instances, and launch argument construction without adding mod-loader scope.
+
+## Phase 2C — authentication hardening
+Coordinator cancellation, refresh, stale-operation handling, typed XSTS restrictions, redaction, diagnostics, and deterministic adapter tests are complete. Phase 3 must wait for the controlled live tests in `RELEASE_CHECKLIST.md`; no game-management scope is included here.

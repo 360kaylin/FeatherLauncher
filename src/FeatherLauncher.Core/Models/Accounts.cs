@@ -17,11 +17,17 @@ public sealed record MinecraftProfile(string Id, string Name);
 public sealed record MinecraftEntitlement(bool OwnsMinecraft, string? ProductName = null);
 public sealed record TokenExpiry(DateTimeOffset ExpiresAt) { public bool IsExpired(DateTimeOffset now) => ExpiresAt <= now; }
 public sealed record DeviceCodeInfo(string VerificationUrl, string UserCode, DateTimeOffset ExpiresAt);
-public enum AuthenticationFailureCategory { ConfigurationMissing, UserCancelled, UserDenied, NetworkUnavailable, MicrosoftAuthenticationFailed, XboxAuthenticationFailed, XstsAuthenticationFailed, ChildOrFamilyRestriction, RegionRestriction, MinecraftAuthenticationFailed, MinecraftNotOwned, MinecraftProfileMissing, TokenExpired, TokenRevoked, SecureStorageUnavailable, UnknownFailure }
+public enum AuthenticationFailureCategory { ConfigurationMissing, UserCancelled, UserDenied, DeviceCodeExpired, NetworkUnavailable, MicrosoftAuthenticationFailed, XboxAuthenticationFailed, XstsAuthenticationFailed, ChildOrFamilyRestriction, XboxProfileMissing, RegionRestriction, XboxServiceDenied, MinecraftAuthenticationFailed, MinecraftNotOwned, MinecraftProfileMissing, TokenExpired, TokenRevoked, SecureStorageUnavailable, UnknownFailure }
 public sealed class AuthenticationException(AuthenticationFailureCategory category, string safeMessage, bool recoverable = true, Exception? inner = null) : Exception(safeMessage, inner)
 {
     public AuthenticationFailureCategory Category { get; } = category;
     public bool Recoverable { get; } = recoverable;
+}
+
+public sealed record AuthenticationDiagnostics(bool IsConfigured, string Flow, string State, DateTimeOffset? TokenExpiresAt, bool SecureStorageAvailable, AuthenticationFailureCategory? LastError, bool LiveAuthenticationManuallyVerified);
+public sealed record ManualAuthenticationVerification(bool Verified, DateTimeOffset? VerifiedAt, string AppVersion, IReadOnlyList<string> ScenarioLabels, string ConfigurationFingerprint)
+{
+    public static ManualAuthenticationVerification NotVerified(string fingerprint, string version) => new(false, null, version, [], fingerprint);
 }
 
 public sealed record AuthenticationConfiguration(

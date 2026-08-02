@@ -19,6 +19,15 @@ public interface IAppPaths
 }
 public interface ICacheService { Task<long> GetSizeBytesAsync(CancellationToken cancellationToken = default); }
 public interface ILogRedactor { string Redact(string message); }
+public interface IClock { DateTimeOffset UtcNow { get; } }
+public interface IMsalClient
+{
+    event EventHandler<DeviceCodeInfo>? DeviceCodeReceived;
+    Task<MicrosoftTokenResult> SignInAsync(IReadOnlyList<string> scopes, bool deviceCode, CancellationToken cancellationToken);
+    Task<MicrosoftTokenResult> RefreshAsync(IReadOnlyList<string> scopes, CancellationToken cancellationToken);
+    Task RemoveAccountsAsync(CancellationToken cancellationToken);
+}
+public sealed record MicrosoftTokenResult(string AccessToken, string AccountId, DateTimeOffset ExpiresAt);
 
 public interface IMicrosoftAuthenticationService
 {

@@ -8,3 +8,6 @@ Use Account sign-out (when implemented in Phase 2B) to remove vault records. Tod
 ## Microsoft authentication
 
 When explicitly enabled, Feather opens a device-code session through MSAL and exchanges short-lived tokens with Microsoft, Xbox, and Minecraft services. Passwords are entered only on Microsoft's site and are never collected. On Windows, MSAL cache material is persisted only through current-user DPAPI storage; tokens are not placed in settings or plaintext JSON. Profile name, UUID, entitlement, and expiry are held for the active session and cleared at sign-out. Tokens, authorization headers, XUIDs, email addresses, cookies, and complete service responses are excluded from logs.
+
+## Local authentication verification record
+The optional operator record contains only a verification boolean, timestamp, launcher version, tested scenario labels, and a non-secret configuration fingerprint. It defaults to not verified and resets after material authentication-configuration changes. It contains no credentials, tokens, device codes, email, XUID, claims, or remote responses and is not proof that authentication works for every account.
