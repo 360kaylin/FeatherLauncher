@@ -14,12 +14,12 @@ namespace FeatherLauncher.Desktop;
 
 public sealed class MainWindow : Window
 {
-    private static readonly string[] Pages = ["Home", "Instances", "Browse", "Mods", "Resource Packs", "Shaders", "Skins", "Capes", "Downloads", "Storage", "Settings", "Diagnostics"];
-    private readonly ISettingsService settingsService; private readonly IAppPaths paths; private readonly ICacheService cache; private readonly ILogger logger;
+    private static readonly string[] Pages = ["Home", "Account", "Versions", "Instances", "Browse", "Mods", "Resource Packs", "Shaders", "Skins", "Capes", "Downloads", "Storage", "Settings", "Diagnostics"];
+    private readonly ISettingsService settingsService; private readonly IAppPaths paths; private readonly ICacheService cache; private readonly IAuthenticationConfigurationProvider auth; private readonly IMinecraftMetadataService metadata; private readonly ILogger logger;
     private readonly Grid content = new(); private LauncherSettings settings = new();
-    public MainWindow(ISettingsService settingsService, IAppPaths paths, ICacheService cache, ILogger<MainWindow> logger)
+    public MainWindow(ISettingsService settingsService, IAppPaths paths, ICacheService cache, IAuthenticationConfigurationProvider auth, IMinecraftMetadataService metadata, ILogger<MainWindow> logger)
     {
-        this.settingsService = settingsService; this.paths = paths; this.cache = cache; this.logger = logger;
+        this.settingsService = settingsService; this.paths = paths; this.cache = cache; this.auth = auth; this.metadata = metadata; this.logger = logger;
         Title = "Feather Launcher"; Width = 1120; Height = 720; MinWidth = 900; MinHeight = 600; Background = new SolidColorBrush(Color.Parse("#101319"));
         var nav = new StackPanel { Width = 210, Spacing = 3, Margin = new Thickness(14) };
         nav.Children.Add(new TextBlock { Text = "FEATHER", FontSize = 24, FontWeight = FontWeight.Bold, Margin = new Thickness(8, 10, 8, 22), Foreground = new SolidColorBrush(Color.Parse("#86A8FF")) });
@@ -32,9 +32,32 @@ public sealed class MainWindow : Window
         content.Children.Clear();
         if (page == "Home") content.Children.Add(PageShell("Home", new StackPanel { Spacing = 10, Children = { new TextBlock { Text = "Welcome to Feather Launcher", FontSize = 30, FontWeight = FontWeight.SemiBold }, new TextBlock { Text = "A free, lightweight and unofficial Minecraft: Java Edition launcher.", FontSize = 16 }, new Border { Margin = new Thickness(0, 18), Padding = new Thickness(18), CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.Parse("#1D2330")), Child = new TextBlock { Text = "Phase 1 foundation • Game launching is not implemented yet." } } } }));
         else if (page == "Settings") content.Children.Add(BuildSettings());
+        else if (page == "Account") content.Children.Add(PageShell("Account", new TextBlock { Text = auth.Get().IsConfigured ? "Authentication configuration detected. Sign-in is deliberately unavailable in Phase 2A." : "Microsoft sign-in is not configured yet.", FontSize = 18, TextWrapping = TextWrapping.Wrap }));
+        else if (page == "Versions") _ = BuildVersionsAsync();
+        else if (page == "Storage") _ = BuildStorageAsync();
         else if (page == "Diagnostics") _ = BuildDiagnosticsAsync();
         else content.Children.Add(PageShell(page, new TextBlock { Text = "Not implemented yet", FontSize = 18, Foreground = Brushes.Gray }));
     }
+    private async Task BuildVersionsAsync()
+    {
+        var panel = new StackPanel { Spacing = 10 }; var status = new TextBlock { Text = "Loading official Minecraft metadata…" }; panel.Children.Add(status); content.Children.Clear(); content.Children.Add(PageShell("Versions", panel));
+        try
+        {
+            var result = await metadata.GetManifestAsync(); var boxes = Enum.GetValues<MinecraftVersionType>().ToDictionary(t => t, t => new CheckBox { Content = t switch { MinecraftVersionType.OldBeta => "Old beta", MinecraftVersionType.OldAlpha => "Old alpha", _ => t.ToString() }, IsChecked = t == MinecraftVersionType.Release });
+            var filters = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 }; foreach (var box in boxes.Values) filters.Children.Add(box); var rows = new StackPanel { Spacing = 5 };
+            void Render() { rows.Children.Clear(); foreach (var version in result.Manifest.Versions.Where(v => boxes[v.Type].IsChecked == true).Take(250)) rows.Children.Add(new SelectableTextBlock { Text = $"{version.Id}  |  {version.Type}  |  Released {version.ReleaseTime:u}  |  Updated {version.UpdatedTime:u}" }); }
+            foreach (var box in boxes.Values) box.IsCheckedChanged += (_, _) => Render(); panel.Children.Clear(); panel.Children.Add(filters); panel.Children.Add(new TextBlock { Text = result.Cache.UsedOfflineFallback ? "Offline: using validated cached metadata." : "Official metadata loaded.", Foreground = Brushes.Gray }); panel.Children.Add(rows); Render();
+        }
+        catch (Exception ex) { status.Text = $"Version metadata unavailable: {ex.Message}"; logger.LogWarning("Version page could not load metadata: {FailureType}", ex.GetType().Name); }
+    }
+    private async Task BuildStorageAsync()
+    {
+        var status = await metadata.GetCacheStatusAsync(); var text = new TextBlock { Text = CacheText(status) }; var refresh = new Button { Content = "Refresh version manifest" }; var clear = new Button { Content = "Clear version metadata cache" };
+        refresh.Click += async (_, _) => { refresh.IsEnabled = false; try { var result = await metadata.GetManifestAsync(true); text.Text = CacheText(result.Cache); } finally { refresh.IsEnabled = true; } };
+        clear.Click += async (_, _) => { await metadata.ClearCacheAsync(); text.Text = CacheText(await metadata.GetCacheStatusAsync()); };
+        content.Children.Clear(); content.Children.Add(PageShell("Storage", new StackPanel { Spacing = 12, Children = { text, refresh, clear } }));
+    }
+    private static string CacheText(MetadataCacheStatus status) => !status.Exists ? "Version metadata cache: empty (offline cache unavailable)" : $"Version metadata cache: {FormatBytes(status.SizeBytes)} • age {status.Age:hh\\:mm\\:ss} • {(status.IsExpired ? "stale" : "valid")} • offline cache available";
     private Control BuildSettings()
     {
         var theme = new ComboBox { ItemsSource = Enum.GetValues<LauncherTheme>(), SelectedItem = settings.Theme };
