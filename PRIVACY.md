@@ -11,3 +11,6 @@ When explicitly enabled, Feather opens a device-code session through MSAL and ex
 
 ## Local authentication verification record
 The optional operator record contains only a verification boolean, timestamp, launcher version, tested scenario labels, and a non-secret configuration fingerprint. It defaults to not verified and resets after material authentication-configuration changes. It contains no credentials, tokens, device codes, email, XUID, claims, or remote responses and is not proof that authentication works for every account.
+
+## Live verification data
+Feather Launcher stores only non-secret authentication configuration and local checklist results. Checklist notes are redacted before persistence. The allow-listed diagnostics report excludes client IDs, tokens, device codes, authorization data, emails, XUIDs, account IDs, Minecraft UUIDs, remote payloads, local usernames, and sensitive paths. Never submit unredacted authentication material.

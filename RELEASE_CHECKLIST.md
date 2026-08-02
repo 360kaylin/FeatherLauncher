@@ -33,3 +33,11 @@ Use a dedicated, correctly configured Microsoft Entra public-client registration
 - [ ] Inspect UI, logs, exceptions, crash reports, and artifacts for secrets after every scenario.
 
 The local record is an operator note, not universal proof. Phase 3 is gated on this checklist and review of remaining tenant policy, regional, family-account, service-outage, and MSAL platform behavior.
+
+## Phase 2D controlled authentication package
+- [ ] Manually dispatch the Windows live authentication test package workflow; it must not receive credentials or attempt sign-in.
+- [ ] Verify `FeatherLauncher-live-auth-test-win-x64.zip` integrity and its SHA-256 checksum.
+- [ ] Confirm invalid configuration disables sign-in and valid unverified configuration shows the explicit warning.
+- [ ] Complete every guided live scenario on Windows and inspect logs/report locally for sensitive values.
+- [ ] Clear authentication data, revoke consent, and delete the temporary Entra registration when appropriate.
+- [ ] Do not describe authentication as live-verified until the configuration-bound record is completed on that build.

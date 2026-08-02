@@ -9,3 +9,6 @@ Authentication is fail-closed when public-client configuration or Windows DPAPI 
 
 ## Authentication hardening
 Production authentication uses MSAL.NET and Windows DPAPI for the local MSAL cache. Test adapters are dependency-injected and are not a runtime bypass. Errors are categorized and sanitized; tokens, authorization headers, device codes, email addresses, XUIDs, account IDs, and unnecessary UUIDs must never be logged. Sign-out invalidates operation generations, removes MSAL accounts, clears the in-memory Minecraft token, and attempts encrypted-cache deletion.
+
+## Authentication verification safety
+Use a public-client registration and never create, enter, or commit a client secret. Diagnostics are allow-listed and notes/logs are redacted, but operators must inspect exports locally before sharing. Use **Clear authentication data** after controlled testing and revoke Microsoft consent when finished. Report categories and reproduction steps only—never credentials, codes, tokens, identifiers, payloads, or unredacted logs.

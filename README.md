@@ -19,3 +19,6 @@ Optional Microsoft sign-in uses MSAL's public-client device-code flow and the of
 
 ## Phase 2C authentication hardening
 Authentication orchestration uses an injectable MSAL adapter in tests while production continues to use MSAL.NET. Operation generations prevent cancelled or superseded callbacks from changing the current account. Live authentication remains opt-in and has **not** been verified by automated tests; see the controlled checklist below.
+
+## Phase 2D live authentication preparation
+Authentication Setup stores only a public client identifier, authority, scopes, enabled state, and flow choice locally. It validates sign-in eligibility, provides a redacted diagnostic export and configuration-bound manual checklist. Controlled Windows testing follows [the live authentication guide](docs/LIVE_AUTHENTICATION_TESTING.md); live authentication is not claimed as verified by the repository.

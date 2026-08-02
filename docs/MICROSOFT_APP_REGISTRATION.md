@@ -18,3 +18,6 @@ Live tests are disabled by default and are not automated in pull requests (espec
 
 ## Phase 2C manual verification
 Automated tests substitute only the injectable MSAL boundary; production uses MSAL.NET. Keep live tests explicitly enabled by a local operator and out of CI. With the public-client registration, run all scenarios in `RELEASE_CHECKLIST.md`, including owned/unowned accounts, cancellation, expiry, sign-out, switching, real refresh after expiry, and network interruption. Never paste client secrets (none are required for a public client), tokens, device codes, account identifiers, or raw responses into issues or artifacts. A material change to client ID, authority, redirect URI, scopes, or flow invalidates the local verification record.
+
+## Local Phase 2D setup
+Create a Microsoft Entra **public client** for personal Microsoft accounts, enable public-client/device-code flow, and copy only its Application (client) ID. Never create or enter a client secret. In **Authentication Setup**, use `https://login.microsoftonline.com/consumers`, scopes `XboxLive.signin offline_access`, device-code flow, and enable authentication. Save and restart. Validation must pass before Account sign-in is enabled. Material setting changes reset local verification. Follow `LIVE_AUTHENTICATION_TESTING.md` and remove consent/registration after testing when no longer needed.
