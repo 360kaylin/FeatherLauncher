@@ -22,3 +22,7 @@ Phase 2A defines identity state and interfaces but does **not** implement Micros
 
 ## Trust boundaries and review gates
 Microsoft identity, Xbox services, Minecraft services, and Mojang's metadata CDN are untrusted network inputs over TLS. Local cache is also revalidated after tampering. Before Phase 2B ships sign-in, register a public-client application, confirm permitted redirect/device-code flow and scopes, test token refresh/revocation and entitlement with owned and unowned accounts, and independently review callback and logging behavior.
+
+## Phase 2B controls
+
+Device code is the primary desktop flow: MSAL supplies the official verification URL/code and polls with cancellation/expiry, while Feather never hosts a browser or receives a password. The staged Microsoft → Xbox Live → XSTS → Minecraft → entitlement → profile chain treats JSON as untrusted, bounds responses, requires HTTPS, and exposes typed safe failures. Operations carry a generation so stale completion cannot replace a newer state, and overlapping sign-ins are rejected. Windows credentials use current-user DPAPI; unsupported platforms fail closed. Sign-out cancels work, removes MSAL accounts, deletes the encrypted cache, and clears profile/entitlement/tokens. Remote access tokens may remain valid until expiry because universal immediate revocation is not guaranteed.

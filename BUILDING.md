@@ -11,3 +11,7 @@ dotnet publish src/FeatherLauncher.Desktop/FeatherLauncher.Desktop.csproj -c Rel
 
 ## Authentication configuration (preparation only)
 Copy values conceptually from `authsettings.example.json` into local environment variables: `FEATHER_AUTH_ENABLED=true`, the repository owner's registered public-client application ID in `FEATHER_MS_CLIENT_ID`, its exact loopback `FEATHER_MS_REDIRECT_URI` (or set `FEATHER_MS_USE_DEVICE_CODE=true`), `FEATHER_MS_SCOPES`, and the consumers authority. Register that redirect/flow in Microsoft Entra and enable public-client flows. Do not create or supply a client secret. Phase 2A still uses a disabled adapter; these variables only validate configuration readiness and do not enable real authentication.
+
+## Optional authentication configuration
+
+No authentication configuration is needed to build or test. For opt-in interactive device-code testing, follow `docs/MICROSOFT_APP_REGISTRATION.md`. Never use a client secret or automate a Microsoft password. Release validation includes `dotnet list FeatherLauncher.slnx package --vulnerable --include-transitive`.

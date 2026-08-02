@@ -2,8 +2,8 @@
   "note": "Example only. Runtime values are read from environment variables; never commit credentials.",
   "FEATHER_AUTH_ENABLED": "false",
   "FEATHER_MS_CLIENT_ID": "00000000-0000-0000-0000-000000000000",
-  "FEATHER_MS_REDIRECT_URI": "http://localhost:PORT/callback",
+  "FEATHER_MS_REDIRECT_URI": "",
   "FEATHER_MS_SCOPES": "XboxLive.signin offline_access",
   "FEATHER_MS_AUTHORITY": "https://login.microsoftonline.com/consumers",
-  "FEATHER_MS_USE_DEVICE_CODE": "false"
+  "FEATHER_MS_USE_DEVICE_CODE": "true"
 }

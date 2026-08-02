@@ -12,3 +12,7 @@ An unofficial, free, lightweight Minecraft: Java Edition launcher foundation. Ph
 - Local settings, diagnostics, safe paths, redacting structured logs, tests, and Windows portable CI packaging
 
 Real Microsoft authentication still requires repository-owner public-client application registration **and Phase 2B implementation/testing**. Setting environment variables does not make sign-in work. See [BUILDING.md](BUILDING.md), [USER_GUIDE.md](USER_GUIDE.md), [PLAN.md](PLAN.md), and the [threat model](docs/IDENTITY_THREAT_MODEL.md).
+
+## Phase 2B authentication
+
+Optional Microsoft sign-in uses MSAL's public-client device-code flow and the official Xbox Live, XSTS, Minecraft authentication, entitlement, and profile endpoints. It is disabled unless explicitly configured; see [Microsoft app registration](docs/MICROSOFT_APP_REGISTRATION.md). Mocked automated tests do not constitute live-service verification. Downloading and launching Minecraft remain out of scope.

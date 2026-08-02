@@ -10,3 +10,11 @@
 - [ ] Once implemented, verify installer upgrade/uninstall leaves user data only by explicit policy
 - [ ] Sign final binaries/artifacts when signing infrastructure exists
 - [ ] Tag immutable commit, upload checksums/SBOM, monitor and document rollback
+
+## Phase 2B identity
+
+- [ ] Confirm Release has no development/test provider or credential.
+- [ ] Confirm sign-in stays disabled without a valid client ID and explicit feature flag.
+- [ ] Exercise cancellation, denial, unowned account, sign-out, switching, and DPAPI cache deletion.
+- [ ] Record live Microsoft/Xbox/XSTS/Minecraft testing separately; never infer it from mocked tests.
+- [ ] Run the dependency vulnerability scan and validate the portable ZIP.
