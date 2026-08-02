@@ -1,0 +1,2 @@
+# Security policy
+Please report vulnerabilities privately through GitHub Security Advisories rather than public issues. Do not include live tokens, passwords, account IDs or personal game files. Supported versions will be listed after the first release. The project will not accept features that bypass ownership, enable cracked accounts, steal sessions, weaken TLS/download verification or misrepresent community capes as official. See `PLAN.md` for the threat boundaries. There is currently no security bounty.

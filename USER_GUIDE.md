@@ -1,0 +1,2 @@
+# User guide (Phase 1)
+Launch `FeatherLauncher.Desktop`. Use the left navigation. Home explains the current milestone; unfinished pages say “Not implemented yet.” Settings are saved locally when **Save settings** is selected; **Reset settings** restores defaults. Theme may be Dark, Light or System. Game-start behavior is stored for future use only. Diagnostics shows real runtime and disk values and paths. The cache measurement may change as files change. There is no login, download or Minecraft launch in Phase 1.

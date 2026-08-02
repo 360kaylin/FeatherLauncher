@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FeatherLauncher.Core/FeatherLauncher.Core.csproj" />
+    <Project Path="src/FeatherLauncher.Desktop/FeatherLauncher.Desktop.csproj" />
+    <Project Path="src/FeatherLauncher.Infrastructure/FeatherLauncher.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FeatherLauncher.Tests/FeatherLauncher.Tests.csproj" />
+  </Folder>
+</Solution>

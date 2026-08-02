@@ -1,0 +1,2 @@
+# Contributing
+Open an issue before large changes. Use a focused branch and conventional, descriptive commits. Run `dotnet format --verify-no-changes`, `dotnet build -c Release`, and `dotnet test -c Release`. Keep nullable reference types and analyzers clean; add cancellation to potentially long asynchronous APIs and tests for behavior. Never log secrets, add telemetry/ads, implement cracked accounts, solicit passwords or claim unofficial capes are Mojang capes. Contributions certify they may be distributed under the repository license once added.
