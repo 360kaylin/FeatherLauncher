@@ -15,11 +15,12 @@ namespace FeatherLauncher.Desktop;
 public sealed class MainWindow : Window
 {
     private static readonly string[] Pages = ["Home", "Account", "Versions", "Instances", "Browse", "Mods", "Resource Packs", "Shaders", "Skins", "Capes", "Downloads", "Storage", "Settings", "Diagnostics"];
-    private readonly ISettingsService settingsService; private readonly IAppPaths paths; private readonly ICacheService cache; private readonly IAuthenticationConfigurationProvider auth; private readonly IMinecraftMetadataService metadata; private readonly ILogger logger;
+    private readonly ISettingsService settingsService; private readonly IAppPaths paths; private readonly ICacheService cache; private readonly IAuthenticationConfigurationProvider auth; private readonly IMicrosoftAuthenticationService authentication; private readonly IMinecraftMetadataService metadata; private readonly ILogger logger;
+    private CancellationTokenSource? signInCancellation;
     private readonly Grid content = new(); private LauncherSettings settings = new();
-    public MainWindow(ISettingsService settingsService, IAppPaths paths, ICacheService cache, IAuthenticationConfigurationProvider auth, IMinecraftMetadataService metadata, ILogger<MainWindow> logger)
+    public MainWindow(ISettingsService settingsService, IAppPaths paths, ICacheService cache, IAuthenticationConfigurationProvider auth, IMicrosoftAuthenticationService authentication, IMinecraftMetadataService metadata, ILogger<MainWindow> logger)
     {
-        this.settingsService = settingsService; this.paths = paths; this.cache = cache; this.auth = auth; this.metadata = metadata; this.logger = logger;
+        this.settingsService = settingsService; this.paths = paths; this.cache = cache; this.auth = auth; this.authentication = authentication; this.metadata = metadata; this.logger = logger;
         Title = "Feather Launcher"; Width = 1120; Height = 720; MinWidth = 900; MinHeight = 600; Background = new SolidColorBrush(Color.Parse("#101319"));
         var nav = new StackPanel { Width = 210, Spacing = 3, Margin = new Thickness(14) };
         nav.Children.Add(new TextBlock { Text = "FEATHER", FontSize = 24, FontWeight = FontWeight.Bold, Margin = new Thickness(8, 10, 8, 22), Foreground = new SolidColorBrush(Color.Parse("#86A8FF")) });
@@ -32,12 +33,25 @@ public sealed class MainWindow : Window
         content.Children.Clear();
         if (page == "Home") content.Children.Add(PageShell("Home", new StackPanel { Spacing = 10, Children = { new TextBlock { Text = "Welcome to Feather Launcher", FontSize = 30, FontWeight = FontWeight.SemiBold }, new TextBlock { Text = "A free, lightweight and unofficial Minecraft: Java Edition launcher.", FontSize = 16 }, new Border { Margin = new Thickness(0, 18), Padding = new Thickness(18), CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.Parse("#1D2330")), Child = new TextBlock { Text = "Phase 1 foundation • Game launching is not implemented yet." } } } }));
         else if (page == "Settings") content.Children.Add(BuildSettings());
-        else if (page == "Account") content.Children.Add(PageShell("Account", new TextBlock { Text = auth.Get().IsConfigured ? "Authentication configuration detected. Sign-in is deliberately unavailable in Phase 2A." : "Microsoft sign-in is not configured yet.", FontSize = 18, TextWrapping = TextWrapping.Wrap }));
+        else if (page == "Account") content.Children.Add(BuildAccount());
         else if (page == "Versions") _ = BuildVersionsAsync();
         else if (page == "Storage") _ = BuildStorageAsync();
         else if (page == "Diagnostics") _ = BuildDiagnosticsAsync();
         else content.Children.Add(PageShell(page, new TextBlock { Text = "Not implemented yet", FontSize = 18, Foreground = Brushes.Gray }));
     }
+    private Control BuildAccount()
+    {
+        if (!auth.Get().IsConfigured) return PageShell("Account", new TextBlock { Text = "Microsoft sign-in is not configured yet.", FontSize = 18, TextWrapping = TextWrapping.Wrap });
+        var status = new TextBlock { Text = "Signed out", TextWrapping = TextWrapping.Wrap }; var details = new SelectableTextBlock { TextWrapping = TextWrapping.Wrap };
+        var signIn = new Button { Content = "Sign in with Microsoft" }; var cancel = new Button { Content = "Cancel sign-in", IsEnabled = false }; var signOut = new Button { Content = "Sign out" }; var switchAccount = new Button { Content = "Switch account" }; var copyCode = new Button { Content = "Copy temporary code", IsEnabled = false }; string? currentCode = null;
+        signIn.Click += async (_, _) => { signInCancellation = new(); cancel.IsEnabled = true; try { await authentication.BeginSignInAsync(signInCancellation.Token); } catch (InvalidOperationException) { status.Text = "A sign-in is already in progress."; } finally { cancel.IsEnabled = false; } };
+        cancel.Click += (_, _) => signInCancellation?.Cancel(); signOut.Click += async (_, _) => await authentication.SignOutAsync(); switchAccount.Click += async (_, _) => { await authentication.SignOutAsync(); signIn.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); };
+        copyCode.Click += async (_, _) => { if (currentCode is not null && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard) await clipboard.SetTextAsync(currentCode); };
+        authentication.DeviceCodeReceived += (_, code) => Dispatcher.UIThread.Post(() => { currentCode = code.UserCode; copyCode.IsEnabled = true; details.Text = $"Open {code.VerificationUrl} in your normal browser and enter temporary code {code.UserCode}. Feather Launcher never asks for your password. Code expires {code.ExpiresAt:u}."; });
+        _ = Task.Run(async () => { await foreach (var state in authentication.ObserveAccountStateAsync()) Dispatcher.UIThread.Post(() => { status.Text = state switch { SigningInAccount => "Signing in…", MicrosoftAuthenticatedAccount => "Microsoft authenticated", XboxAuthenticatedAccount => "Xbox authenticated", MinecraftAuthenticatedAccount => "Minecraft authenticated", OwnershipConfirmedAccount => "Minecraft: Java Edition ownership confirmed", ProfileLoadedAccount loaded => $"Profile loaded: {loaded.Profile.Name} ({FormatUuid(loaded.Profile.Id)})", SignedInAccount signed => $"Signed in and ready: {signed.Profile?.Name}. Session expires {signed.Expiry.ExpiresAt:u}.", AuthenticationFailed failed => $"Sign-in failed ({failed.Code}): {failed.SafeMessage}", SigningOutAccount => "Signing out…", _ => "Signed out" }; }); });
+        return PageShell("Account", new StackPanel { Spacing = 12, Children = { status, details, copyCode, new TextBlock { Text = "Only an entitlement reported by the official Minecraft service confirms Java ownership; owning another edition alone is not sufficient.", TextWrapping = TextWrapping.Wrap }, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { signIn, cancel, signOut, switchAccount } } } });
+    }
+    private static string FormatUuid(string id) => id.Length == 32 ? $"{id[..8]}-{id[8..12]}-{id[12..16]}-{id[16..20]}-{id[20..]}" : "Unavailable";
     private async Task BuildVersionsAsync()
     {
         var panel = new StackPanel { Spacing = 10 }; var status = new TextBlock { Text = "Loading official Minecraft metadata…" }; panel.Children.Add(status); content.Children.Clear(); content.Children.Add(PageShell("Versions", panel));

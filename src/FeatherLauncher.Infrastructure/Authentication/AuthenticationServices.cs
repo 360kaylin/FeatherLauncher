@@ -20,6 +20,7 @@ public sealed class EnvironmentAuthenticationConfigurationProvider : IAuthentica
 
 public sealed class DisabledMicrosoftAuthenticationService : IMicrosoftAuthenticationService
 {
+    public event EventHandler<DeviceCodeInfo>? DeviceCodeReceived { add { } remove { } }
     public Task BeginSignInAsync(CancellationToken cancellationToken = default) => Task.FromException(new InvalidOperationException("Microsoft sign-in is not configured yet."));
     public Task RefreshAsync(CancellationToken cancellationToken = default) => Task.FromException(new InvalidOperationException("Microsoft sign-in is not configured yet."));
     public Task SignOutAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -59,7 +60,7 @@ public sealed class AccountStateStore
     public void Transition(AccountState state)
     {
         if (state is SigningInAccount && Current is not SignedOutAccount and not AuthenticationFailed) throw new InvalidOperationException("Sign-in can only start while signed out or after a failure.");
-        if (state is SignedInAccount && Current is not SigningInAccount) throw new InvalidOperationException("A signed-in identity must follow sign-in.");
+        if (state is SignedInAccount && Current is not ProfileLoadedAccount and not SigningInAccount) throw new InvalidOperationException("A signed-in identity must follow profile loading.");
         Current = state; Changed?.Invoke(this, state);
     }
 }
