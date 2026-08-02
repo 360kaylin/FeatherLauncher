@@ -19,3 +19,27 @@ public interface IAppPaths
 }
 public interface ICacheService { Task<long> GetSizeBytesAsync(CancellationToken cancellationToken = default); }
 public interface ILogRedactor { string Redact(string message); }
+
+public interface IMicrosoftAuthenticationService
+{
+    Task BeginSignInAsync(CancellationToken cancellationToken = default);
+    Task RefreshAsync(CancellationToken cancellationToken = default);
+    Task SignOutAsync(CancellationToken cancellationToken = default);
+    IAsyncEnumerable<AccountState> ObserveAccountStateAsync(CancellationToken cancellationToken = default);
+}
+public interface ISecureTokenStorage
+{
+    Task StoreAsync(string key, string token, CancellationToken cancellationToken = default);
+    Task<string?> RetrieveAsync(string key, CancellationToken cancellationToken = default);
+    Task DeleteAsync(string key, CancellationToken cancellationToken = default);
+}
+public interface IMinecraftEntitlementService { Task<MinecraftEntitlement> VerifyAsync(string accessToken, CancellationToken cancellationToken = default); }
+public interface IMinecraftProfileService { Task<MinecraftProfile> GetAsync(string accessToken, CancellationToken cancellationToken = default); }
+public interface IAuthenticationConfigurationProvider { AuthenticationConfiguration Get(); }
+public interface IMinecraftMetadataService
+{
+    Task<ManifestResult> GetManifestAsync(bool forceRefresh = false, CancellationToken cancellationToken = default);
+    Task<VersionMetadata> GetVersionAsync(MinecraftVersion version, CancellationToken cancellationToken = default);
+    Task ClearCacheAsync(CancellationToken cancellationToken = default);
+    Task<MetadataCacheStatus> GetCacheStatusAsync(CancellationToken cancellationToken = default);
+}

@@ -1,2 +1,6 @@
-# User guide (Phase 1)
-Launch `FeatherLauncher.Desktop`. Use the left navigation. Home explains the current milestone; unfinished pages say “Not implemented yet.” Settings are saved locally when **Save settings** is selected; **Reset settings** restores defaults. Theme may be Dark, Light or System. Game-start behavior is stored for future use only. Diagnostics shows real runtime and disk values and paths. The cache measurement may change as files change. There is no login, download or Minecraft launch in Phase 1.
+# User guide (Phase 2A)
+**Account** honestly reports that Microsoft sign-in is unconfigured; there is no nonfunctional login button. Even with environment configuration, sign-in remains deliberately unavailable until Phase 2B.
+
+**Versions** retrieves Mojang's official manifest. Releases are selected by default; select Snapshots, Old beta, or Old alpha to add them. Rows show ID, type, release date, and update date. **Storage** reports cache size, age, validity and offline availability, and provides refresh and clear actions. A valid cache is used for six hours; when refresh fails, a still-parseable cached manifest (including stale data) is shown with an offline label. Clearing it removes offline availability. No game files are downloaded.
+
+Settings and Diagnostics retain Phase 1 behavior. To delete all local data, close the launcher and delete the application-data directory displayed in Diagnostics.

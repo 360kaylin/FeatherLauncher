@@ -21,6 +21,7 @@ jobs:
           cache: true
           cache-dependency-path: '**/*.csproj'
       - run: dotnet restore FeatherLauncher.slnx
+      - run: dotnet format FeatherLauncher.slnx --verify-no-changes --no-restore
       - run: dotnet build FeatherLauncher.slnx --configuration Release --no-restore
       - run: dotnet test FeatherLauncher.slnx --configuration Release --no-build --logger trx --results-directory TestResults
       - run: dotnet publish src/FeatherLauncher.Desktop/FeatherLauncher.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64

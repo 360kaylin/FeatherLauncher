@@ -1,18 +1,13 @@
 # Building
-
-## Prerequisites
-Install the .NET 10 SDK. The repository pins the SDK in `global.json`; workloads, Node, Java, Visual Studio and a Windows machine are not required for ordinary builds.
+Install .NET 10 SDK (pinned by `global.json`); no Node, Java, Visual Studio, Windows machine, or client secret is needed.
 
 ```bash
 dotnet restore FeatherLauncher.slnx
+dotnet format FeatherLauncher.slnx --verify-no-changes --no-restore
 dotnet build FeatherLauncher.slnx -c Release --no-restore
 dotnet test FeatherLauncher.slnx -c Release --no-build
-```
-
-Publish Windows x64 from Linux or Windows:
-
-```bash
 dotnet publish src/FeatherLauncher.Desktop/FeatherLauncher.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64
 ```
 
-The self-contained output includes the .NET runtime. GitHub Actions creates the ZIP. A signed installer is deferred.
+## Authentication configuration (preparation only)
+Copy values conceptually from `authsettings.example.json` into local environment variables: `FEATHER_AUTH_ENABLED=true`, the repository owner's registered public-client application ID in `FEATHER_MS_CLIENT_ID`, its exact loopback `FEATHER_MS_REDIRECT_URI` (or set `FEATHER_MS_USE_DEVICE_CODE=true`), `FEATHER_MS_SCOPES`, and the consumers authority. Register that redirect/flow in Microsoft Entra and enable public-client flows. Do not create or supply a client secret. Phase 2A still uses a disabled adapter; these variables only validate configuration readiness and do not enable real authentication.
