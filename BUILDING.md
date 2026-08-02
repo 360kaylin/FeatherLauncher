@@ -15,3 +15,6 @@ Copy values conceptually from `authsettings.example.json` into local environment
 ## Optional authentication configuration
 
 No authentication configuration is needed to build or test. For opt-in interactive device-code testing, follow `docs/MICROSOFT_APP_REGISTRATION.md`. Never use a client secret or automate a Microsoft password. Release validation includes `dotnet list FeatherLauncher.slnx package --vulnerable --include-transitive`.
+
+## Authentication test policy
+Coordinator tests use scripted adapters and require no credentials. Live integration testing is opt-in, disabled by default, and must never run with credentials in GitHub Actions. Before release run restore, format verification, Release build/test, win-x64 publish, ZIP integrity validation, package vulnerability scanning, and `git diff --check`.

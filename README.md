@@ -16,3 +16,6 @@ Real Microsoft authentication still requires repository-owner public-client appl
 ## Phase 2B authentication
 
 Optional Microsoft sign-in uses MSAL's public-client device-code flow and the official Xbox Live, XSTS, Minecraft authentication, entitlement, and profile endpoints. It is disabled unless explicitly configured; see [Microsoft app registration](docs/MICROSOFT_APP_REGISTRATION.md). Mocked automated tests do not constitute live-service verification. Downloading and launching Minecraft remain out of scope.
+
+## Phase 2C authentication hardening
+Authentication orchestration uses an injectable MSAL adapter in tests while production continues to use MSAL.NET. Operation generations prevent cancelled or superseded callbacks from changing the current account. Live authentication remains opt-in and has **not** been verified by automated tests; see the controlled checklist below.

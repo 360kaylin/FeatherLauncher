@@ -60,8 +60,20 @@ public sealed class XstsAuthorizationService(HttpClient http) : IXstsAuthorizati
     {
         var payload = JsonSerializer.Serialize(new { Properties = new { SandboxId = "RETAIL", UserTokens = new[] { xboxToken } }, RelyingParty = "rp://api.minecraftservices.com/", TokenType = "JWT" });
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint) { Content = new StringContent(payload, Encoding.UTF8, "application/json") };
-        try { using var document = await AuthenticationHttp.SendAsync(http, request, AuthenticationFailureCategory.XstsAuthenticationFailed, cancellationToken); return Parse(document.RootElement); }
-        catch (AuthenticationException ex) when (ex.Category == AuthenticationFailureCategory.XstsAuthenticationFailed) { throw; }
+        try
+        {
+            using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (response.Content.Headers.ContentLength is > AuthenticationHttp.MaxBytes) throw new AuthenticationException(AuthenticationFailureCategory.XstsAuthenticationFailed, "Xbox authorization returned an invalid response.");
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken); using var document = await JsonDocument.ParseAsync(stream, new JsonDocumentOptions { MaxDepth = 24 }, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var code = document.RootElement.TryGetProperty("XErr", out var value) && value.TryGetInt64(out var parsed) ? parsed : 0;
+                throw MapError(code);
+            }
+            return Parse(document.RootElement);
+        }
+        catch (HttpRequestException ex) { throw new AuthenticationException(AuthenticationFailureCategory.NetworkUnavailable, "The Xbox authorization service could not be reached.", true, ex); }
+        catch (JsonException ex) { throw new AuthenticationException(AuthenticationFailureCategory.XstsAuthenticationFailed, "Xbox authorization returned an invalid response.", true, ex); }
     }
     public static XstsAuthorizationResult Parse(JsonElement root)
     {
@@ -69,6 +81,14 @@ public sealed class XstsAuthorizationService(HttpClient http) : IXstsAuthorizati
         try { return new(token, AuthenticationHttp.Required(root.GetProperty("DisplayClaims").GetProperty("xui")[0], "uhs", AuthenticationFailureCategory.XstsAuthenticationFailed)); }
         catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException or IndexOutOfRangeException) { throw new AuthenticationException(AuthenticationFailureCategory.XstsAuthenticationFailed, "Xbox authorization returned an incomplete response."); }
     }
+    public static AuthenticationException MapError(long xerr) => xerr switch
+    {
+        2148916233 => new(AuthenticationFailureCategory.XboxProfileMissing, "This Microsoft account does not have an Xbox profile."),
+        2148916235 or 2148916236 => new(AuthenticationFailureCategory.RegionRestriction, "Xbox authentication is unavailable for this account's region."),
+        2148916237 or 2148916238 => new(AuthenticationFailureCategory.ChildOrFamilyRestriction, "A family organizer must allow Xbox access for this account."),
+        2148916227 => new(AuthenticationFailureCategory.XboxServiceDenied, "Xbox services denied this account's authentication request."),
+        _ => new(AuthenticationFailureCategory.XstsAuthenticationFailed, "Xbox authorization failed.")
+    };
 }
 
 public sealed class MinecraftAuthenticationService(HttpClient http) : IMinecraftAuthenticationService

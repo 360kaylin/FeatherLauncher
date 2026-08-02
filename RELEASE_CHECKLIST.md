@@ -18,3 +18,18 @@
 - [ ] Exercise cancellation, denial, unowned account, sign-out, switching, and DPAPI cache deletion.
 - [ ] Record live Microsoft/Xbox/XSTS/Minecraft testing separately; never infer it from mocked tests.
 - [ ] Run the dependency vulnerability scan and validate the portable ZIP.
+
+## Phase 2C controlled live authentication verification (still required)
+Use a dedicated, correctly configured Microsoft Entra public-client registration. Record only pass/fail, timestamp, app version, and these scenario labels—never credentials, tokens, device codes, account identifiers, or raw responses.
+
+- [ ] Owned Minecraft: Java Edition account reaches Ready and loads the expected profile.
+- [ ] Microsoft account without Java entitlement receives the safe unowned-account message.
+- [ ] Cancel an active device-code flow; polling stops and Signed out/failure is stable.
+- [ ] Allow a device code to expire; expiry is shown and polling stops without sleeps in automated tests.
+- [ ] Sign out from Ready; profile, entitlement, Minecraft token, MSAL accounts, and encrypted cache clear.
+- [ ] Switch accounts; old profile/token disappear immediately and cancellation of the new flow is safe.
+- [ ] After actual token expiry, silent refresh succeeds; revoked/failed refresh requires sign-in safely.
+- [ ] Interrupt the network at Microsoft, Xbox, XSTS, Minecraft exchange, entitlement, and profile stages.
+- [ ] Inspect UI, logs, exceptions, crash reports, and artifacts for secrets after every scenario.
+
+The local record is an operator note, not universal proof. Phase 3 is gated on this checklist and review of remaining tenant policy, regional, family-account, service-outage, and MSAL platform behavior.

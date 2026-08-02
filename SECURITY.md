@@ -6,3 +6,6 @@ Phase 2A accepts only HTTPS metadata URLs, bounds documents, validates required 
 ## Authentication boundary
 
 Authentication is fail-closed when public-client configuration or Windows DPAPI storage is unavailable. Every service stage requires HTTPS, bounded JSON, cancellation, and a timeout; remote bodies and credentials are never logged or surfaced in UI exceptions. Report any token disclosure privately. Sign-out removes the local account/cache but cannot promise immediate remote revocation of every issued public-client token.
+
+## Authentication hardening
+Production authentication uses MSAL.NET and Windows DPAPI for the local MSAL cache. Test adapters are dependency-injected and are not a runtime bypass. Errors are categorized and sanitized; tokens, authorization headers, device codes, email addresses, XUIDs, account IDs, and unnecessary UUIDs must never be logged. Sign-out invalidates operation generations, removes MSAL accounts, clears the in-memory Minecraft token, and attempts encrypted-cache deletion.
