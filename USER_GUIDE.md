@@ -11,3 +11,6 @@ If the repository owner configured Microsoft authentication, select **Sign in wi
 
 ## Controlled authentication testing
 The Account page shows the Microsoft verification URL, temporary code, expiry, copy, and cancellation controls; enter no password in Feather Launcher. The Diagnostics page contains only configuration/flow/state/expiry/storage/error/manual-verification status. Live testing requires an operator-controlled Entra registration and the scenarios in `RELEASE_CHECKLIST.md`. Do not capture codes or tokens in screenshots or logs.
+
+## Authentication Setup
+Open **Authentication Setup** to enter the public client ID, HTTPS authority, required scopes, enabled state, and device-code flow. Save and restart; Account sign-in remains unavailable until validation succeeds. The page shows secure-storage and manual-verification status, a persistent redacted scenario checklist, and a confirmed clear-data action. Diagnostics can export `authentication-diagnostics-redacted.json`; inspect it locally before sharing. See `docs/LIVE_AUTHENTICATION_TESTING.md` for controlled Windows testing.

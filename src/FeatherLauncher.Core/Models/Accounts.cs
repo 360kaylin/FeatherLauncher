@@ -25,6 +25,10 @@ public sealed class AuthenticationException(AuthenticationFailureCategory catego
 }
 
 public sealed record AuthenticationDiagnostics(bool IsConfigured, string Flow, string State, DateTimeOffset? TokenExpiresAt, bool SecureStorageAvailable, AuthenticationFailureCategory? LastError, bool LiveAuthenticationManuallyVerified);
+public enum VerificationResult { NotTested, Pass, Fail }
+public sealed record AuthenticationChecklistItem(string Scenario, VerificationResult Result, DateTimeOffset? Timestamp, string Note);
+public sealed record AuthenticationChecklist(IReadOnlyList<AuthenticationChecklistItem> Items);
+public sealed record AuthenticationDiagnosticsReport(string LauncherVersion, string OperatingSystem, string Architecture, bool AuthenticationConfigured, string FlowType, string AuthorityHost, IReadOnlyList<string> ScopeNames, bool SecureStorageAvailable, string CurrentState, string SafeErrorCategory, bool ManuallyVerified, DateTimeOffset GeneratedAt, IReadOnlyList<string> TestScenarioLabels);
 public sealed record ManualAuthenticationVerification(bool Verified, DateTimeOffset? VerifiedAt, string AppVersion, IReadOnlyList<string> ScenarioLabels, string ConfigurationFingerprint)
 {
     public static ManualAuthenticationVerification NotVerified(string fingerprint, string version) => new(false, null, version, [], fingerprint);
@@ -38,7 +42,9 @@ public sealed record AuthenticationConfiguration(
     string Authority,
     bool UseDeviceCode)
 {
-    public bool IsConfigured => FeatureEnabled && Guid.TryParse(ClientId, out _) && UseDeviceCode &&
-        Uri.TryCreate(Authority, UriKind.Absolute, out var authority) && authority.Scheme == Uri.UriSchemeHttps &&
-        RequiredScopes.Contains("XboxLive.signin", StringComparer.Ordinal) && RequiredScopes.Contains("offline_access", StringComparer.Ordinal);
+    public bool HasClientId => !string.IsNullOrWhiteSpace(ClientId);
+    public bool HasValidClientId => Guid.TryParse(ClientId, out var value) && value != Guid.Empty;
+    public bool HasValidAuthority => Uri.TryCreate(Authority, UriKind.Absolute, out var authority) && authority.Scheme == Uri.UriSchemeHttps && !string.IsNullOrWhiteSpace(authority.Host);
+    public bool HasRequiredScopes => RequiredScopes.Contains("XboxLive.signin", StringComparer.Ordinal) && RequiredScopes.Contains("offline_access", StringComparer.Ordinal);
+    public bool IsConfigured => FeatureEnabled && HasValidClientId && UseDeviceCode && HasValidAuthority && HasRequiredScopes;
 }

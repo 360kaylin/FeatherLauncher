@@ -20,7 +20,11 @@ public sealed partial class App : Application
     {
         var services = new ServiceCollection();
         services.AddSingleton<IAppPaths, AppPaths>(); services.AddSingleton<ILogRedactor, LogRedactor>(); services.AddSingleton<ISettingsService, JsonSettingsService>(); services.AddSingleton<ICacheService, CacheService>();
-        services.AddSingleton<IAuthenticationConfigurationProvider, EnvironmentAuthenticationConfigurationProvider>();
+        services.AddSingleton<IAuthenticationConfigurationStore>(sp => new JsonAuthenticationConfigurationStore(Path.Combine(sp.GetRequiredService<IAppPaths>().Data, "authentication.json")));
+        services.AddSingleton<IAuthenticationConfigurationProvider>(sp => sp.GetRequiredService<IAuthenticationConfigurationStore>());
+        services.AddSingleton(sp => new ManualAuthenticationVerificationStore(Path.Combine(sp.GetRequiredService<IAppPaths>().Data, "authentication-verification.json")));
+        services.AddSingleton(sp => new AuthenticationChecklistStore(Path.Combine(sp.GetRequiredService<IAppPaths>().Data, "authentication-checklist.json"), sp.GetRequiredService<ILogRedactor>()));
+        services.AddSingleton<AuthenticationDiagnosticsExporter>();
         services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(20) }); services.AddSingleton<IMinecraftMetadataService, MinecraftMetadataService>();
         services.AddSingleton<IXboxAuthenticationService, XboxAuthenticationService>(); services.AddSingleton<IXstsAuthorizationService, XstsAuthorizationService>(); services.AddSingleton<IMinecraftAuthenticationService, MinecraftAuthenticationService>(); services.AddSingleton<IMinecraftEntitlementService, MinecraftEntitlementService>(); services.AddSingleton<IMinecraftProfileService, MinecraftProfileService>();
         services.AddSingleton<ISecureTokenStorage>(sp => OperatingSystem.IsWindows() ? new WindowsDpapiTokenStorage(Path.Combine(sp.GetRequiredService<IAppPaths>().Data, "credentials")) : new UnsupportedPlatformTokenStorage());
@@ -29,7 +33,7 @@ public sealed partial class App : Application
         var provider = services.BuildServiceProvider(); provider.GetRequiredService<IAppPaths>().EnsureCreated();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var window = new MainWindow(provider.GetRequiredService<ISettingsService>(), provider.GetRequiredService<IAppPaths>(), provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<IAuthenticationConfigurationProvider>(), provider.GetRequiredService<IMicrosoftAuthenticationService>(), provider.GetRequiredService<IMinecraftMetadataService>(), provider.GetRequiredService<ILogger<MainWindow>>());
+            var window = new MainWindow(provider.GetRequiredService<ISettingsService>(), provider.GetRequiredService<IAppPaths>(), provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<IAuthenticationConfigurationStore>(), provider.GetRequiredService<IMicrosoftAuthenticationService>(), provider.GetRequiredService<IMinecraftMetadataService>(), provider.GetRequiredService<ManualAuthenticationVerificationStore>(), provider.GetRequiredService<AuthenticationChecklistStore>(), provider.GetRequiredService<AuthenticationDiagnosticsExporter>(), provider.GetRequiredService<ISecureTokenStorage>(), provider.GetRequiredService<ILogger<MainWindow>>());
             desktop.MainWindow = window; await window.InitializeAsync();
         }
         base.OnFrameworkInitializationCompleted();

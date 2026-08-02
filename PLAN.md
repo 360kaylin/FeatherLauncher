@@ -44,3 +44,9 @@ Implemented an opt-in MSAL device-code public-client flow and focused Xbox Live,
 
 ## Phase 2C — authentication hardening
 Coordinator cancellation, refresh, stale-operation handling, typed XSTS restrictions, redaction, diagnostics, and deterministic adapter tests are complete. Phase 3 must wait for the controlled live tests in `RELEASE_CHECKLIST.md`; no game-management scope is included here.
+
+## Phase 2D — live-verification preparation
+- [x] Local non-secret authentication configuration and startup validation
+- [x] Configuration-bound guided checklist, redacted diagnostics, and clear-data action
+- [x] Manually dispatched Windows x64 portable artifact with SHA-256
+- [ ] Repository owner performs controlled live-account scenarios; this phase makes no live-verification claim
