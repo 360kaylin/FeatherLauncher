@@ -20,6 +20,7 @@ public sealed class EnvironmentAuthenticationConfigurationProvider : IAuthentica
 
 public sealed class DisabledMicrosoftAuthenticationService : IMicrosoftAuthenticationService
 {
+    public AccountState CurrentState { get; } = new SignedOutAccount();
     public event EventHandler<DeviceCodeInfo>? DeviceCodeReceived { add { } remove { } }
     public Task BeginSignInAsync(CancellationToken cancellationToken = default) => Task.FromException(new InvalidOperationException("Microsoft sign-in is not configured yet."));
     public Task RefreshAsync(CancellationToken cancellationToken = default) => Task.FromException(new InvalidOperationException("Microsoft sign-in is not configured yet."));

@@ -13,7 +13,7 @@ public sealed class Phase2CCoordinatorTests
     public async Task SuccessfulPipelinePublishesEveryStage()
     {
         using var fixture = new Fixture(); var states = await fixture.RunAsync();
-        Assert.Collection(states, s => Assert.IsType<SignedOutAccount>(s), s => Assert.IsType<SigningInAccount>(s), s => Assert.IsType<MicrosoftAuthenticatedAccount>(s), s => Assert.IsType<XboxAuthenticatedAccount>(s), s => Assert.IsType<MinecraftAuthenticatedAccount>(s), s => Assert.IsType<OwnershipConfirmedAccount>(s), s => Assert.IsType<ProfileLoadedAccount>(s), s => Assert.IsType<SignedInAccount>(s));
+        Assert.Collection(states, s => Assert.IsType<SignedOutAccount>(s), s => Assert.IsType<SigningInAccount>(s), s => Assert.IsType<MicrosoftAuthenticatedAccount>(s), s => Assert.IsType<XboxAuthenticatedAccount>(s), s => Assert.IsType<XstsAuthenticatedAccount>(s), s => Assert.IsType<MinecraftAuthenticatedAccount>(s), s => Assert.IsType<OwnershipConfirmedAccount>(s), s => Assert.IsType<ProfileLoadedAccount>(s), s => Assert.IsType<SignedInAccount>(s));
     }
     [Theory]
     [InlineData(AuthenticationFailureCategory.UserCancelled)]
@@ -34,8 +34,25 @@ public sealed class Phase2CCoordinatorTests
     [Fact] public async Task SilentRefreshSuccessRunsCompletePipeline() { using var f = new Fixture(); var read = f.ReadUntilTerminalAsync(); await f.Service.RefreshAsync(); Assert.IsType<SignedInAccount>((await read).Last()); Assert.Equal(1, f.Msal.RefreshCalls); }
     [Fact] public async Task SilentRefreshFailureIsPublishedSafely() { using var f = new Fixture { RefreshFailure = AuthenticationFailureCategory.TokenRevoked }; var read = f.ReadUntilTerminalAsync(); await f.Service.RefreshAsync(); Assert.Equal(nameof(AuthenticationFailureCategory.TokenRevoked), (await read).OfType<AuthenticationFailed>().Single().Code); }
     [Fact] public async Task ConcurrentSignInIsRejected() { using var f = new Fixture { HoldMicrosoft = true }; var first = f.Service.BeginSignInAsync(); await f.Msal.Started.Task; await Assert.ThrowsAsync<InvalidOperationException>(() => f.Service.BeginSignInAsync()); await f.Service.SignOutAsync(); await first; }
+    [Fact]
+    public async Task SuccessfulCompletionIsBroadcastToEveryUiObserverAndRemainsCurrent()
+    {
+        using var f = new Fixture();
+        var firstPage = f.ReadUntilTerminalAsync();
+        var rebuiltPage = f.ReadUntilTerminalAsync();
+
+        await f.Service.BeginSignInAsync();
+
+        var firstStates = await firstPage;
+        var rebuiltStates = await rebuiltPage;
+        Assert.IsType<SignedInAccount>(firstStates.Last());
+        Assert.IsType<SignedInAccount>(rebuiltStates.Last());
+        Assert.IsType<SignedInAccount>(f.Service.CurrentState);
+        Assert.Contains(firstStates, state => state is XstsAuthenticatedAccount);
+        Assert.Contains(rebuiltStates, state => state is XstsAuthenticatedAccount);
+    }
     [Fact] public async Task SignOutCancelsAndInvalidatesStaleCompletion() { using var f = new Fixture { HoldMicrosoft = true }; var read = f.ReadCountAsync(4); var login = f.Service.BeginSignInAsync(); await f.Msal.Started.Task; await f.Service.SignOutAsync(); f.Msal.Release.TrySetResult(); await login; var states = await read; Assert.IsType<SignedOutAccount>(states.Last()); Assert.DoesNotContain(states, x => x is SignedInAccount); Assert.True(f.Storage.Deleted); Assert.True(f.Msal.Removed); }
-    [Fact] public async Task AccountSwitchDoesNotReuseOldMinecraftToken() { using var f = new Fixture(); await f.RunAsync(); var read = f.ReadCountAsync(2); await f.Service.SignOutAsync(); Assert.Collection(await read, s => Assert.IsType<SigningOutAccount>(s), s => Assert.IsType<SignedOutAccount>(s)); Assert.True(f.Storage.Deleted); }
+    [Fact] public async Task AccountSwitchDoesNotReuseOldMinecraftToken() { using var f = new Fixture(); await f.RunAsync(); var read = f.ReadCountAsync(3); await f.Service.SignOutAsync(); Assert.Collection((await read).Skip(1), s => Assert.IsType<SigningOutAccount>(s), s => Assert.IsType<SignedOutAccount>(s)); Assert.True(f.Storage.Deleted); }
     [Theory]
     [InlineData("xbox")]
     [InlineData("xsts")]

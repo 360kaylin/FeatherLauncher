@@ -5,6 +5,7 @@ public sealed record SignedOutAccount : AccountState;
 public sealed record SigningInAccount(DateTimeOffset StartedAt) : AccountState;
 public sealed record MicrosoftAuthenticatedAccount : AccountState;
 public sealed record XboxAuthenticatedAccount : AccountState;
+public sealed record XstsAuthenticatedAccount : AccountState;
 public sealed record MinecraftAuthenticatedAccount : AccountState;
 public sealed record OwnershipConfirmedAccount : AccountState;
 public sealed record ProfileLoadedAccount(MinecraftProfile Profile) : AccountState;

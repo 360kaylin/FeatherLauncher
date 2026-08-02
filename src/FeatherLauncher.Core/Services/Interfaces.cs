@@ -32,6 +32,7 @@ public sealed record MicrosoftTokenResult(string AccessToken, string AccountId, 
 public interface IMicrosoftAuthenticationService
 {
     event EventHandler<DeviceCodeInfo>? DeviceCodeReceived;
+    AccountState CurrentState => new SignedOutAccount();
     Task BeginSignInAsync(CancellationToken cancellationToken = default);
     Task RefreshAsync(CancellationToken cancellationToken = default);
     Task SignOutAsync(CancellationToken cancellationToken = default);
