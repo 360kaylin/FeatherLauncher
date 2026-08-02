@@ -17,3 +17,7 @@ indent_style = space
 indent_size = 2
 [*.md]
 trim_trailing_whitespace = false
+
+# Windows command scripts require CRLF for compatibility with cmd.exe.
+[*.{bat,cmd}]
+end_of_line = crlf
